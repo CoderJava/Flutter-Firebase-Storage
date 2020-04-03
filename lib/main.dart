@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() => runApp(App());
 
@@ -282,9 +286,24 @@ class HomePage extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Icon(
-                  Icons.camera,
-                  color: Color(0xFF251F1F),
+                GestureDetector(
+                  onTap: () async {
+                    File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+                    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+                    List<String> splitPath = image.path.split('/');
+                    String filename = splitPath[splitPath.length - 1];
+                    StorageReference ref = firebaseStorage.ref().child('images').child(filename);
+                    StorageUploadTask uploadTask = ref.putFile(image);
+                    StreamSubscription streamSubscription = uploadTask.events.listen((event) {
+                      print('event type: ${event.type}');
+                    });
+                    await uploadTask.onComplete;
+                    streamSubscription.cancel();
+                  },
+                  child: Icon(
+                    Icons.camera,
+                    color: Color(0xFF251F1F),
+                  ),
                 ),
                 Icon(
                   Icons.more_vert,

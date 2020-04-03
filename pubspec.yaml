@@ -35,6 +35,10 @@ dependencies:
   # The Font Awesome Icon pack available as Flutter Icons.
   font_awesome_flutter: ^8.8.1
 
+  # Flutter plugin for selecting images from the Android and iOS image library, and taking new
+  # pictures with the camera.
+  image_picker: ^0.6.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
