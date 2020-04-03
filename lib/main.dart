@@ -20,19 +20,45 @@ class App extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
+  bool isLoading = false;
+  bool isSuccess = true;
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
     return Scaffold(
+      key: scaffoldState,
       body: Stack(
         children: <Widget>[
           _buildWidgetBackgroundHeader(),
           _buildWidgetContentProfile(),
           _buildWidgetPhotoProfile(),
+          _buildWidgetLoading(),
         ],
       ),
     );
+  }
+
+  Container _buildWidgetLoading() {
+    if (isLoading) {
+      return Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.grey[900].withOpacity(0.8),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else {
+      return Container();
+    }
   }
 
   Container _buildWidgetPhotoProfile() {
@@ -295,7 +321,28 @@ class HomePage extends StatelessWidget {
                     StorageReference ref = firebaseStorage.ref().child('images').child(filename);
                     StorageUploadTask uploadTask = ref.putFile(image);
                     StreamSubscription streamSubscription = uploadTask.events.listen((event) {
-                      print('event type: ${event.type}');
+                      var eventType = event.type;
+                      if (eventType == StorageTaskEventType.progress) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                      } else if (eventType == StorageTaskEventType.failure) {
+                        scaffoldState.currentState.showSnackBar(SnackBar(
+                          content: Text('Photo failed to upload'),
+                        ));
+                        setState(() {
+                          isLoading = false;
+                          isSuccess = false;
+                        });
+                      } else if (eventType == StorageTaskEventType.success) {
+                        scaffoldState.currentState.showSnackBar(SnackBar(
+                          content: Text('Photo uploaded successfully'),
+                        ));
+                        setState(() {
+                          isLoading = false;
+                          isSuccess = true;
+                        });
+                      }
                     });
                     await uploadTask.onComplete;
                     streamSubscription.cancel();
