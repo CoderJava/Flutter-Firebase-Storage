@@ -1,113 +1,327 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(App());
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    ScreenUtil.init(context);
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      body: Stack(
+        children: <Widget>[
+          _buildWidgetBackgroundHeader(),
+          _buildWidgetContentProfile(),
+          _buildWidgetPhotoProfile(),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+    );
+  }
+
+  Container _buildWidgetPhotoProfile() {
+    return Container(
+      margin: EdgeInsets.only(
+        top: ScreenUtil().setHeight(160),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: ScreenUtil().setWidth(256),
+            height: ScreenUtil().setHeight(256),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                ScreenUtil().setWidth(48),
+              ),
+              image: DecorationImage(
+                image: AssetImage('assets/images/woman_holding_guitar.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWidgetContentProfile() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(
+        top: ScreenUtil().setHeight(256),
+      ),
+      decoration: BoxDecoration(
+        color: Color(0xFF251F1F),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(
+            ScreenUtil().setWidth(72),
+          ),
+          topRight: Radius.circular(
+            ScreenUtil().setWidth(72),
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: ScreenUtil().setHeight(128 + 56),
+          right: ScreenUtil().setWidth(64),
+          left: ScreenUtil().setWidth(64),
+        ),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+            WidgetTextMont(
+              'Angelica Mayuko',
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            SizedBox(
+              height: ScreenUtil().setHeight(16),
             ),
+            WidgetTextMont(
+              'Software Engineer focused on iOS',
+              textColor: Colors.grey,
+              fontWeight: FontWeight.w400,
+            ),
+            SizedBox(
+              height: ScreenUtil().setHeight(72),
+            ),
+            _buildWidgetPostsFollowersFollowing(),
+            SizedBox(
+              height: ScreenUtil().setHeight(32),
+            ),
+            _buildWidgetButtonFollowAndChat(),
+            SizedBox(
+              height: ScreenUtil().setHeight(48),
+            ),
+            _buildWidgetMyPosts(),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget _buildWidgetMyPosts() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: WidgetTextMont(
+            'My Posts',
+            fontWeight: FontWeight.bold,
+            fontSize: 42,
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            // TODO: do something in here
+          },
+          child: Icon(
+            FontAwesomeIcons.thList,
+            color: Colors.grey[800],
+            size: 16,
+          ),
+        ),
+        SizedBox(
+          width: ScreenUtil().setWidth(48),
+        ),
+        GestureDetector(
+          onTap: () {
+            // TODO: do something in hre
+          },
+          child: Icon(
+            FontAwesomeIcons.thLarge,
+            color: Colors.grey[100],
+            size: 16,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWidgetButtonFollowAndChat() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: RaisedButton(
+            child: Text(
+              'Follow',
+              style: TextStyle(
+                fontFamily: 'Mont',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            textColor: Colors.white,
+            color: Color(0xFFFC8157),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            onPressed: () {
+              // TODO: do something in here
+            },
+          ),
+        ),
+        SizedBox(
+          width: ScreenUtil().setWidth(48),
+        ),
+        Expanded(
+          child: RaisedButton(
+            child: Icon(
+              Icons.chat,
+              color: Colors.white,
+              size: 20,
+            ),
+            color: Color(0xFFFFD4BE),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            onPressed: () {
+              // TODO: do something in here
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWidgetPostsFollowersFollowing() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            WidgetTextMont(
+              '123',
+              fontSize: 42,
+              fontWeight: FontWeight.bold,
+            ),
+            WidgetTextMont(
+              'Posts',
+              textColor: Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            WidgetTextMont(
+              '1.2M',
+              fontSize: 42,
+              fontWeight: FontWeight.bold,
+            ),
+            WidgetTextMont(
+              'Followers',
+              textColor: Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            WidgetTextMont(
+              '304',
+              fontSize: 42,
+              fontWeight: FontWeight.bold,
+            ),
+            WidgetTextMont(
+              'Following',
+              textColor: Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWidgetBackgroundHeader() {
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/woman_holding_guitar.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: 10,
+              sigmaY: 10,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.0),
+              ),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: ScreenUtil().setHeight(48),
+              right: ScreenUtil().setWidth(48),
+              left: ScreenUtil().setWidth(48),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Icon(
+                  Icons.camera,
+                  color: Color(0xFF251F1F),
+                ),
+                Icon(
+                  Icons.more_vert,
+                  color: Color(0xFF251F1F),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class WidgetTextMont extends StatelessWidget {
+  final String text;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final Color textColor;
+
+  WidgetTextMont(
+    this.text, {
+    this.fontSize = 36,
+    this.fontWeight = FontWeight.normal,
+    this.textColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: textColor,
+        fontSize: ScreenUtil().setSp(fontSize),
+        fontWeight: fontWeight,
+        fontFamily: 'Mont',
+      ),
     );
   }
 }
