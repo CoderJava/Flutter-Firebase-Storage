@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(App());
 
@@ -20,6 +22,11 @@ class App extends StatelessWidget {
   }
 }
 
+enum TypeOperation {
+  upload,
+  download,
+}
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -27,8 +34,33 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
-  bool isLoading = false;
+  final String keyMyPosts = 'keyMyPosts';
+  final List<String> myPosts = [];
+
+  SharedPreferences sharedPreferences;
+  TypeOperation typeOperation = TypeOperation.download;
+  bool isLoading = true;
   bool isSuccess = true;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      sharedPreferences = await SharedPreferences.getInstance();
+      if (sharedPreferences.containsKey(keyMyPosts)) {
+        myPosts.addAll(sharedPreferences.getStringList(keyMyPosts));
+        setState(() {
+          isLoading = false;
+          typeOperation = null;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          typeOperation = null;
+        });
+      }
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Container _buildWidgetLoading() {
-    if (isLoading) {
+    if (isLoading && typeOperation == TypeOperation.upload) {
       return Container(
         width: double.infinity,
         height: double.infinity,
@@ -136,7 +168,10 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: ScreenUtil().setHeight(48),
             ),
-            _buildWidgetMyPosts(),
+            _buildWidgetHeaderMyPosts(),
+            Expanded(
+              child: _buildWidgetMyPosts(),
+            ),
           ],
         ),
       ),
@@ -144,6 +179,65 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildWidgetMyPosts() {
+    if (isLoading && typeOperation == TypeOperation.download) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (myPosts.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          WidgetTextMont(
+            'No post available',
+            fontWeight: FontWeight.bold,
+            fontSize: 56,
+            textColor: Colors.grey[600],
+          ),
+          SizedBox(
+            height: ScreenUtil().setHeight(24),
+          ),
+          WidgetTextMont(
+            'When you share photos and videos, they\'ll appear in here',
+            textAlign: TextAlign.center,
+            textColor: Colors.grey[700],
+          ),
+        ],
+      );
+    } else {
+      return GridView.count(
+        crossAxisCount: 3,
+        children: myPosts.map(
+          (item) {
+            return ClipRRect(
+              borderRadius: BorderRadius.all(
+                Radius.circular(16),
+              ),
+              child: CachedNetworkImage(
+                imageUrl: item,
+                fit: BoxFit.cover,
+                placeholder: (context, url) {
+                  return Image.asset(
+                    'assets/images/img_placeholder.png',
+                    fit: BoxFit.cover,
+                  );
+                },
+                errorWidget: (context, url, error) {
+                  return Image.asset(
+                    'assets/images/img_not_found.jpg',
+                    fit: BoxFit.cover,
+                  );
+                },
+              ),
+            );
+          },
+        ).toList(),
+        crossAxisSpacing: ScreenUtil().setWidth(48),
+        mainAxisSpacing: ScreenUtil().setHeight(48),
+      );
+    }
+  }
+
+  Widget _buildWidgetHeaderMyPosts() {
     return Row(
       children: <Widget>[
         Expanded(
@@ -198,7 +292,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(8),
             ),
             onPressed: () {
-              // TODO: do something in here
+              /* Nothing to do in here */
             },
           ),
         ),
@@ -217,7 +311,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(8),
             ),
             onPressed: () {
-              // TODO: do something in here
+              /* Nothing to do in here */
             },
           ),
         ),
@@ -316,14 +410,18 @@ class _HomePageState extends State<HomePage> {
                   onTap: () async {
                     File image = await ImagePicker.pickImage(source: ImageSource.gallery);
                     FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+                    if (image == null) {
+                      return;
+                    }
                     List<String> splitPath = image.path.split('/');
                     String filename = splitPath[splitPath.length - 1];
                     StorageReference ref = firebaseStorage.ref().child('images').child(filename);
                     StorageUploadTask uploadTask = ref.putFile(image);
-                    StreamSubscription streamSubscription = uploadTask.events.listen((event) {
+                    StreamSubscription streamSubscription = uploadTask.events.listen((event) async {
                       var eventType = event.type;
                       if (eventType == StorageTaskEventType.progress) {
                         setState(() {
+                          typeOperation = TypeOperation.upload;
                           isLoading = true;
                         });
                       } else if (eventType == StorageTaskEventType.failure) {
@@ -333,14 +431,19 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           isLoading = false;
                           isSuccess = false;
+                          typeOperation = null;
                         });
                       } else if (eventType == StorageTaskEventType.success) {
+                        var downloadUrl = await event.snapshot.ref.getDownloadURL();
+                        myPosts.add(downloadUrl);
+                        sharedPreferences.setStringList(keyMyPosts, myPosts);
                         scaffoldState.currentState.showSnackBar(SnackBar(
                           content: Text('Photo uploaded successfully'),
                         ));
                         setState(() {
                           isLoading = false;
                           isSuccess = true;
+                          typeOperation = null;
                         });
                       }
                     });
@@ -352,9 +455,14 @@ class _HomePageState extends State<HomePage> {
                     color: Color(0xFF251F1F),
                   ),
                 ),
-                Icon(
-                  Icons.more_vert,
-                  color: Color(0xFF251F1F),
+                GestureDetector(
+                  onTap: () {
+                    // TODO: do something in here  
+                  },
+                  child: Icon(
+                    Icons.delete_forever,
+                    color: Color(0xFF251F1F),
+                  ),
                 ),
               ],
             ),
@@ -370,12 +478,14 @@ class WidgetTextMont extends StatelessWidget {
   final double fontSize;
   final FontWeight fontWeight;
   final Color textColor;
+  final TextAlign textAlign;
 
   WidgetTextMont(
     this.text, {
     this.fontSize = 36,
     this.fontWeight = FontWeight.normal,
     this.textColor = Colors.white,
+    this.textAlign = TextAlign.left,
   });
 
   @override
@@ -388,6 +498,7 @@ class WidgetTextMont extends StatelessWidget {
         fontWeight: fontWeight,
         fontFamily: 'Mont',
       ),
+      textAlign: textAlign,
     );
   }
 }

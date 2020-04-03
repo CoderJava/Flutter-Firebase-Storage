@@ -39,6 +39,13 @@ dependencies:
   # pictures with the camera.
   image_picker: ^0.6.4
 
+  # Flutter plugin for reading and writing simple key-value pairs
+  shared_preferences: ^0.5.6+3
+
+  # Flutter library to load and cache network images. Can also be used with placeholder and
+  # error widgets.
+  cached_network_image: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
