@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage> {
   TypeOperation typeOperation = TypeOperation.download;
   bool isLoading = true;
   bool isSuccess = true;
+  bool isGridView = true;
 
   @override
   void initState() {
@@ -206,40 +207,81 @@ class _HomePageState extends State<HomePage> {
         ],
       );
     } else {
-      return GridView.count(
-        padding: EdgeInsets.only(
-          top: ScreenUtil().setHeight(48),
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        crossAxisCount: 3,
-        children: myPosts.map(
-          (item) {
-            return ClipRRect(
-              borderRadius: BorderRadius.all(
-                Radius.circular(16),
+      double paddingBottomScreen = MediaQuery.of(context).padding.bottom;
+      return isGridView
+          ? Padding(
+            padding: EdgeInsets.only(
+              top: ScreenUtil().setHeight(48),
+              bottom: paddingBottomScreen == 0 ? ScreenUtil().setHeight(48) : paddingBottomScreen,
+            ),
+            child: GridView.count(
+                padding: EdgeInsets.zero,
+                crossAxisCount: 3,
+                children: myPosts.map(
+                  (item) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(16),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: item,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) {
+                          return Image.asset(
+                            'assets/images/img_placeholder.png',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        errorWidget: (context, url, error) {
+                          return Image.asset(
+                            'assets/images/img_not_found.jpg',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ).toList(),
+                crossAxisSpacing: ScreenUtil().setWidth(48),
+                mainAxisSpacing: ScreenUtil().setHeight(48),
               ),
-              child: CachedNetworkImage(
-                imageUrl: item,
-                fit: BoxFit.cover,
-                placeholder: (context, url) {
-                  return Image.asset(
-                    'assets/images/img_placeholder.png',
-                    fit: BoxFit.cover,
+          )
+          : Padding(
+              padding: EdgeInsets.only(
+                top: ScreenUtil().setHeight(48),
+                bottom: paddingBottomScreen == 0 ? ScreenUtil().setHeight(48) : paddingBottomScreen,
+              ),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                itemCount: myPosts.length,
+                separatorBuilder: (context, index) {
+                  return SizedBox(
+                    height: ScreenUtil().setHeight(48),
                   );
                 },
-                errorWidget: (context, url, error) {
-                  return Image.asset(
-                    'assets/images/img_not_found.jpg',
-                    fit: BoxFit.cover,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: CachedNetworkImage(
+                      imageUrl: myPosts[index],
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) {
+                        return Image.asset(
+                          'assets/images/img_placeholder.png',
+                          fit: BoxFit.cover,
+                        );
+                      },
+                      errorWidget: (context, url, error) {
+                        return Image.asset(
+                          'assets/images/img_not_found.jpg',
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
                   );
                 },
               ),
             );
-          },
-        ).toList(),
-        crossAxisSpacing: ScreenUtil().setWidth(48),
-        mainAxisSpacing: ScreenUtil().setHeight(48),
-      );
     }
   }
 
@@ -255,11 +297,13 @@ class _HomePageState extends State<HomePage> {
         ),
         GestureDetector(
           onTap: () {
-            // TODO: do something in here
+            setState(() {
+              isGridView = false;
+            });
           },
           child: Icon(
             FontAwesomeIcons.thList,
-            color: Colors.grey[800],
+            color: isGridView ? Colors.grey[800] : Colors.grey[100],
             size: 16,
           ),
         ),
@@ -268,11 +312,13 @@ class _HomePageState extends State<HomePage> {
         ),
         GestureDetector(
           onTap: () {
-            // TODO: do something in hre
+            setState(() {
+              isGridView = true;
+            });
           },
           child: Icon(
             FontAwesomeIcons.thLarge,
-            color: Colors.grey[100],
+            color: isGridView ? Colors.grey[100] : Colors.grey[800],
             size: 16,
           ),
         ),
