@@ -25,6 +25,7 @@ class App extends StatelessWidget {
 enum TypeOperation {
   upload,
   download,
+  delete,
 }
 
 class HomePage extends StatefulWidget {
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
   final String keyMyPosts = 'keyMyPosts';
   final List<String> myPosts = [];
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 
   SharedPreferences sharedPreferences;
   TypeOperation typeOperation = TypeOperation.download;
@@ -79,7 +81,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Container _buildWidgetLoading() {
-    if (isLoading && typeOperation == TypeOperation.upload) {
+    if (isLoading && typeOperation == TypeOperation.upload || typeOperation == TypeOperation.delete) {
       return Container(
         width: double.infinity,
         height: double.infinity,
@@ -103,7 +105,7 @@ class _HomePageState extends State<HomePage> {
         children: <Widget>[
           Container(
             width: ScreenUtil().setWidth(256),
-            height: ScreenUtil().setHeight(256),
+            height: ScreenUtil().setWidth(256),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(
                 ScreenUtil().setWidth(48),
@@ -138,7 +140,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Padding(
         padding: EdgeInsets.only(
-          top: ScreenUtil().setHeight(128 + 56),
+          top: ScreenUtil().setWidth(128 + 56),
           right: ScreenUtil().setWidth(64),
           left: ScreenUtil().setWidth(64),
         ),
@@ -205,6 +207,10 @@ class _HomePageState extends State<HomePage> {
       );
     } else {
       return GridView.count(
+        padding: EdgeInsets.only(
+          top: ScreenUtil().setHeight(48),
+          bottom: MediaQuery.of(context).padding.bottom,
+        ),
         crossAxisCount: 3,
         children: myPosts.map(
           (item) {
@@ -409,7 +415,6 @@ class _HomePageState extends State<HomePage> {
                 GestureDetector(
                   onTap: () async {
                     File image = await ImagePicker.pickImage(source: ImageSource.gallery);
-                    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
                     if (image == null) {
                       return;
                     }
@@ -456,11 +461,24 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    // TODO: do something in here  
+                  onTap: () async {
+                    setState(() {
+                      isLoading = true;
+                      typeOperation = TypeOperation.delete;
+                    });
+                    myPosts.forEach((element) async {
+                      StorageReference ref = await firebaseStorage.getReferenceFromUrl(element);
+                      await ref.delete();
+                    });
+                    myPosts.clear();
+                    await sharedPreferences.clear();
+                    setState(() {
+                      isLoading = false;
+                      typeOperation = null;
+                    });
                   },
                   child: Icon(
-                    Icons.delete_forever,
+                    Icons.delete,
                     color: Color(0xFF251F1F),
                   ),
                 ),
