@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Container _buildWidgetLoading() {
+  Widget _buildWidgetLoading() {
     if (isLoading && typeOperation == TypeOperation.upload || typeOperation == TypeOperation.delete) {
       return Container(
         width: double.infinity,
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Container _buildWidgetPhotoProfile() {
+  Widget _buildWidgetPhotoProfile() {
     return Container(
       margin: EdgeInsets.only(
         top: ScreenUtil().setHeight(160),
@@ -210,11 +210,11 @@ class _HomePageState extends State<HomePage> {
       double paddingBottomScreen = MediaQuery.of(context).padding.bottom;
       return isGridView
           ? Padding(
-            padding: EdgeInsets.only(
-              top: ScreenUtil().setHeight(48),
-              bottom: paddingBottomScreen == 0 ? ScreenUtil().setHeight(48) : paddingBottomScreen,
-            ),
-            child: GridView.count(
+              padding: EdgeInsets.only(
+                top: ScreenUtil().setHeight(48),
+                bottom: paddingBottomScreen == 0 ? ScreenUtil().setHeight(48) : paddingBottomScreen,
+              ),
+              child: GridView.count(
                 padding: EdgeInsets.zero,
                 crossAxisCount: 3,
                 children: myPosts.map(
@@ -245,7 +245,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisSpacing: ScreenUtil().setWidth(48),
                 mainAxisSpacing: ScreenUtil().setHeight(48),
               ),
-          )
+            )
           : Padding(
               padding: EdgeInsets.only(
                 top: ScreenUtil().setHeight(48),
@@ -379,7 +379,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             WidgetTextMont(
-              '123',
+              '${myPosts.length}',
               fontSize: 42,
               fontWeight: FontWeight.bold,
             ),
