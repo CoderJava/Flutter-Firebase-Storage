@@ -1,16 +1,9 @@
-# flutter_firebase_storage
+# Flutter Firebase Storage
+### Firebase Storage
+Cloud Storage is built for app developers who need to store and serve user-generated content, such 
+as photo or videos. Cloud Storage for Firebase is a pwoerful, simple, and cost-effective object 
+storage service built for Google scale.
 
-Flutter app with implement Firebase Storage
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Output App
+![screenshot 1](https://raw.githubusercontent.com/CoderJava/Flutter-Firebase-Storage/master/screenshots/output%20firebase%20storage%20app.png "Screenshot 1")<br />
+![screenshot 2](https://raw.githubusercontent.com/CoderJava/Flutter-Firebase-Storage/master/screenshots/output%20firebase%20storage%20app%202.png "Screenshot 2")
